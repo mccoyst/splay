@@ -15,5 +15,8 @@ playing music assume a conventional directory structure of
 				Album1/
 				Album2/
 			…
+
+Copyright © 2012 Steve McCoy.
+Licensed under the MIT License.
 */
 package main
