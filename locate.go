@@ -4,11 +4,11 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"os/user"
-	"math/rand"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -128,7 +128,7 @@ type artist struct {
 }
 
 func newArtist(path string) Music {
-	return &artist{ path }
+	return &artist{path}
 }
 
 func (a *artist) Path() string {
@@ -188,12 +188,12 @@ func (a *artist) List(start string) error {
 
 // An album represents all of the tracks of an album.
 type album struct {
-	path string
+	path     string
 	showName bool
 }
 
 func newAlbum(path string, showName bool) Music {
-	return &album{ path, showName }
+	return &album{path, showName}
 }
 
 func (a *album) Path() string {
@@ -260,11 +260,11 @@ func (e *Error) Error() string {
 }
 
 func newError(what string) error {
-	return &Error{ what }
+	return &Error{what}
 }
 
 // trimExt returns s, minus any trailing extension.
 // E.g. trimExt("dog.txt.orig") returns "dog.txt".
 func trimExt(s string) string {
-	return s[0 : len(s) - len(filepath.Ext(s))]
+	return s[0 : len(s)-len(filepath.Ext(s))]
 }
