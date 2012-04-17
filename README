@@ -1,0 +1,7 @@
+Splay is a digital jukebox with a very simple command-line interface. It is not interactive. Simply "got get github.com/mccoyst/splay" and run it like so:
+
+	splay Blonde on Blonde
+
+For more details, see the godoc or `splay -help`.
+
+If you are not me, you may not like this.
