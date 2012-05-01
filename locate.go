@@ -143,7 +143,7 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 
 	r := rand.New(rand.NewSource(int64(time.Now().Second())))
 	for i := range albums {
-		n := r.Intn(len(albums))
+		n := intnRange(r, i, len(albums))
 		a := albums[i]
 		albums[i] = albums[n]
 		albums[n] = a
@@ -165,6 +165,11 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 		}
 	}
 	return nil
+}
+
+// intnRange returns a non-negative int in the range [b,e).
+func intnRange(r *rand.Rand, b, e int) int {
+	return r.Intn(e - b) + b
 }
 
 func (a *artist) List(start string) error {
