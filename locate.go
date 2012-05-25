@@ -183,7 +183,7 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 
 // intnRange returns a non-negative int in the range [b,e).
 func intnRange(r *rand.Rand, b, e int) int {
-	return r.Intn(e - b) + b
+	return r.Intn(e-b) + b
 }
 
 func (a *artist) List(start string) error {
