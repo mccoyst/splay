@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // LocateArtist returns a Music object, or an error if none
@@ -109,9 +111,21 @@ func contents(path string) ([]os.FileInfo, error) {
 
 // match returns true iff s fits the pattern.
 func match(pattern, s string) bool {
-	s = strings.ToLower(s)
-	pattern = strings.ToLower(pattern)
+	s = clean(strings.ToLower(s))
+	pattern = clean(strings.ToLower(pattern))
+	fmt.Fprintf(os.Stderr, "s = %q, pattern = %q\n", s, pattern)
 	return strings.Contains(s, pattern)
+}
+
+// clean returns s without any non-alphanumeric runes.
+func clean(s string) string {
+	buf := new(bytes.Buffer)
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
+			_, _ = buf.WriteRune(r)
+		}
+	}
+	return buf.String()
 }
 
 // The Music interface provides methods for identifying and playing
