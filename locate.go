@@ -173,10 +173,7 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 		albums[n] = a
 	}
 
-	s := 0
-	if start != "" {
-		s = findDir(albums, start)
-	}
+	s := findDir(albums, start)
 
 	all := make([]os.FileInfo, 0, len(albums))
 	all = append(all, albums[s:len(albums)]...)
@@ -205,10 +202,7 @@ func (a *artist) List(start string) error {
 		return err
 	}
 
-	s := 0
-	if start != "" {
-		s = findDir(albums, start)
-	}
+	s := findDir(albums, start)
 
 	all := make([]os.FileInfo, 0, len(albums))
 	all = append(all, albums[s:len(albums)]...)
@@ -241,10 +235,7 @@ func (a *album) Play(cmd, start string, tracks bool) error {
 		return err
 	}
 
-	s := 0
-	if start != "" {
-		s = findFile(songs, start)
-	}
+	s := findFile(songs, start)
 
 	for i := s; i < len(songs); i++ {
 		if tracks {
@@ -271,10 +262,7 @@ func (a *album) List(start string) error {
 		return err
 	}
 
-	s := 0
-	if start != "" {
-		s = findFile(songs, start)
-	}
+	s := findFile(songs, start)
 
 	for i := s; i < len(songs); i++ {
 		fmt.Println(songs[i].Name())
@@ -299,6 +287,10 @@ func findDir(fi []os.FileInfo, pattern string) int {
 // find returns the index into fi of the acceptable FileInfo matching
 // the given pattern, or 0 if not found.
 func find(fi []os.FileInfo, pattern string, accept func(os.FileInfo)bool) int {
+	if pattern == "" {
+		return 0
+	}
+
 	best := 9999
 	loc := 0
 	for i := range fi {
