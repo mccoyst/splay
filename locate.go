@@ -32,6 +32,10 @@ func LocateArtist(pattern string) (Music, error) {
 	}
 
 	i := find(artists, pattern)
+	if i < 0 {
+		return nil, nil
+	}
+
 	loc := filepath.Join(mloc, artists[i].Name())
 	return newArtist(loc), nil
 }
@@ -189,6 +193,9 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 	}
 
 	s := find(albums, start)
+	if s < 0 {
+		return newError("I failed to find an album matching this pattern: %q", start)
+	}
 
 	all := make([]os.FileInfo, 0, len(albums))
 	all = append(all, albums[s:len(albums)]...)
@@ -215,6 +222,9 @@ func (a *artist) List(start string) error {
 	}
 
 	s := find(albums, start)
+	if s < 0 {
+		return newError("I failed to find an album matching this pattern: %q", start)
+	}
 
 	all := make([]os.FileInfo, 0, len(albums))
 	all = append(all, albums[s:len(albums)]...)
@@ -248,6 +258,9 @@ func (a *album) Play(cmd, start string, tracks bool) error {
 	}
 
 	s := find(songs, start)
+	if s < 0 {
+		return newError("I failed to find a song matching this pattern: %q", start)
+	}
 
 	for i := s; i < len(songs); i++ {
 		if tracks {
@@ -275,6 +288,9 @@ func (a *album) List(start string) error {
 	}
 
 	s := find(songs, start)
+	if s < 0 {
+		return newError("I failed to find a song matching this pattern: %q", start)
+	}
 
 	for i := s; i < len(songs); i++ {
 		fmt.Println(songs[i].Name())
@@ -290,7 +306,7 @@ func find(fi []os.FileInfo, pattern string) int {
 	}
 
 	best := 9999
-	loc := 0
+	loc := -1
 	for i := range fi {
 		m := match(pattern, fi[i].Name())
 		if m < 0 {
@@ -312,8 +328,8 @@ func (e *Error) Error() string {
 	return e.what
 }
 
-func newError(what string) error {
-	return &Error{what}
+func newError(what string, args ...interface{}) error {
+	return &Error{fmt.Sprintf(what, args...)}
 }
 
 // trimExt returns s, minus any trailing extension.
