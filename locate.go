@@ -179,6 +179,23 @@ func (a *artist) Path() string {
 }
 
 func (a *artist) Play(cmd, start string, tracks bool) error {
+	return a.doPerAlbum(start, func(album os.FileInfo) error {
+		p := filepath.Join(a.Path(), album.Name())
+		if err := newAlbum(p, true).Play(cmd, "", tracks); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (a *artist) List(start string) error {
+	return a.doPerAlbum(start, func(album os.FileInfo) error {
+		fmt.Println(album.Name())
+		return nil
+	})
+}
+
+func (a *artist) doPerAlbum(start string, f func(os.FileInfo) error) error {
 	albums, err := subDirs(a.Path())
 	if err != nil {
 		return err
@@ -202,8 +219,8 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 	albums = append(all, albums[0:s]...)
 
 	for _, album := range albums {
-		p := filepath.Join(a.Path(), album.Name())
-		if err = newAlbum(p, true).Play(cmd, "", tracks); err != nil {
+		err := f(album)
+		if err != nil {
 			return err
 		}
 	}
@@ -213,28 +230,6 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 // intnRange returns a non-negative int in the range [b,e).
 func intnRange(r *rand.Rand, b, e int) int {
 	return r.Intn(e-b) + b
-}
-
-func (a *artist) List(start string) error {
-	albums, err := subDirs(a.Path())
-	if err != nil {
-		return err
-	}
-
-	s := find(albums, start)
-	if s < 0 {
-		return newError("I failed to find an album matching this pattern: %q", start)
-	}
-
-	all := make([]os.FileInfo, 0, len(albums))
-	all = append(all, albums[s:len(albums)]...)
-	albums = append(all, albums[0:s]...)
-
-	for _, album := range albums {
-		fmt.Println(album.Name())
-	}
-
-	return nil
 }
 
 // An album represents all of the tracks of an album.
