@@ -31,26 +31,9 @@ func LocateArtist(pattern string) (Music, error) {
 		return nil, err
 	}
 
-	best := 9999
-	loc := ""
-	for i := range artists {
-		if !artists[i].IsDir() {
-			continue
-		}
-		m := match(pattern, artists[i].Name())
-		if m < 0 {
-			continue
-		}
-		if m < best {
-			best = m
-			loc = filepath.Join(mloc, artists[i].Name())
-		}
-	}
-
-	if loc != "" {
-		return newArtist(loc), nil
-	}
-	return nil, nil
+	i := findDir(artists, pattern)
+	loc := filepath.Join(mloc, artists[i].Name())
+	return newArtist(loc), nil
 }
 
 // LocateAlbum returns a Music object, or an error if none
@@ -192,7 +175,7 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 
 	s := 0
 	if start != "" {
-		s = find(albums, start)
+		s = findDir(albums, start)
 	}
 
 	all := make([]os.FileInfo, 0, len(albums))
@@ -224,7 +207,7 @@ func (a *artist) List(start string) error {
 
 	s := 0
 	if start != "" {
-		s = find(albums, start)
+		s = findDir(albums, start)
 	}
 
 	all := make([]os.FileInfo, 0, len(albums))
@@ -260,7 +243,7 @@ func (a *album) Play(cmd, start string, tracks bool) error {
 
 	s := 0
 	if start != "" {
-		s = find(songs, start)
+		s = findFile(songs, start)
 	}
 
 	for i := s; i < len(songs); i++ {
@@ -290,7 +273,7 @@ func (a *album) List(start string) error {
 
 	s := 0
 	if start != "" {
-		s = find(songs, start)
+		s = findFile(songs, start)
 	}
 
 	for i := s; i < len(songs); i++ {
@@ -299,11 +282,30 @@ func (a *album) List(start string) error {
 	return nil
 }
 
-// find returns the index into fi of the given pattern, or 0 if not found.
-func find(fi []os.FileInfo, pattern string) int {
+// find returns the index into fi of the file matching the given pattern, or 0 if not found.
+func findFile(fi []os.FileInfo, pattern string) int {
+	return find(fi, pattern, func(f os.FileInfo) bool{
+		return !f.IsDir()
+	})
+}
+
+// find returns the index into fi of the directory matching the given pattern, or 0 if not found.
+func findDir(fi []os.FileInfo, pattern string) int {
+	return find(fi, pattern, func(f os.FileInfo) bool{
+		return f.IsDir()
+	})
+}
+
+// find returns the index into fi of the acceptable FileInfo matching
+// the given pattern, or 0 if not found.
+func find(fi []os.FileInfo, pattern string, accept func(os.FileInfo)bool) int {
 	best := 9999
 	loc := 0
 	for i := range fi {
+		if !accept(fi[i]) {
+			continue
+		}
+
 		m := match(pattern, fi[i].Name())
 		if m < 0 {
 			continue
