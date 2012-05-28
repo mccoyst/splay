@@ -285,7 +285,7 @@ func (a *album) doPerSong(start string, f func(os.FileInfo) error) error {
 		return newError("I failed to find a song matching this pattern: %q", start)
 	}
 
-	for _, song := range songs {
+	for _, song := range songs[s:] {
 		err := f(song)
 		if err != nil {
 			return err
