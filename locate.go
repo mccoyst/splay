@@ -26,7 +26,7 @@ func LocateArtist(pattern string) (Music, error) {
 	if err != nil {
 		return nil, err
 	}
-	artists, err := contents(mloc)
+	artists, err := subDirs(mloc)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func LocateAlbum(pattern string) (Music, error) {
 	if err != nil {
 		return nil, err
 	}
-	artists, err := contents(mloc)
+	artists, err := subDirs(mloc)
 	if err != nil {
 		return nil, err
 	}
@@ -55,20 +55,13 @@ func LocateAlbum(pattern string) (Music, error) {
 	best := 9999
 	loc := ""
 	for i := range artists {
-		if !artists[i].IsDir() {
-			continue
-		}
-
 		aloc := filepath.Join(mloc, artists[i].Name())
-		albums, err := contents(aloc)
+		albums, err := subDirs(aloc)
 		if err != nil {
 			return nil, err
 		}
 
 		for i := range albums {
-			if !albums[i].IsDir() {
-				continue
-			}
 			m := match(pattern, albums[i].Name())
 			if m < 0 {
 				continue
@@ -96,19 +89,41 @@ func musicloc() (string, error) {
 	return filepath.Join(usr.HomeDir, "Music"), nil
 }
 
-// contents returns a list of FileInfos for all of the given path's
-// subdirectories.
-func contents(path string) ([]os.FileInfo, error) {
+// subFiles returns a list of FileInfos for all files under path.
+func subFiles(path string) ([]os.FileInfo, error) {
+	return contents(path, func(f os.FileInfo)bool{
+		return !f.IsDir() && f.Name() != ".DS_Store"
+	})
+}
+
+// subDirs returns a list of FileInfos for all directories under path.
+func subDirs(path string) ([]os.FileInfo, error) {
+	return contents(path, func(f os.FileInfo)bool{
+		return f.IsDir()
+	})
+}
+
+// contents returns a list of FileInfos for all acceptable
+// entries under the given path.
+func contents(path string, accept func(os.FileInfo)bool) ([]os.FileInfo, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	subs, err := f.Readdir(0)
+	allsubs, err := f.Readdir(0)
 	if err != nil {
 		return nil, err
 	}
+
+	subs := make([]os.FileInfo, 0, len(allsubs))
+	for _, f := range allsubs {
+		if accept(f) {
+			subs = append(subs, f)
+		}
+	}
+
 	return subs, nil
 }
 
@@ -160,7 +175,7 @@ func (a *artist) Path() string {
 }
 
 func (a *artist) Play(cmd, start string, tracks bool) error {
-	albums, err := contents(a.Path())
+	albums, err := subDirs(a.Path())
 	if err != nil {
 		return err
 	}
@@ -180,9 +195,6 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 	albums = append(all, albums[0:s]...)
 
 	for _, album := range albums {
-		if album.Name() == ".DS_Store" {
-			continue
-		}
 		p := filepath.Join(a.Path(), album.Name())
 		if err = newAlbum(p, true).Play(cmd, "", tracks); err != nil {
 			return err
@@ -197,7 +209,7 @@ func intnRange(r *rand.Rand, b, e int) int {
 }
 
 func (a *artist) List(start string) error {
-	albums, err := contents(a.Path())
+	albums, err := subDirs(a.Path())
 	if err != nil {
 		return err
 	}
@@ -230,7 +242,7 @@ func (a *album) Path() string {
 }
 
 func (a *album) Play(cmd, start string, tracks bool) error {
-	songs, err := contents(a.Path())
+	songs, err := subFiles(a.Path())
 	if err != nil {
 		return err
 	}
@@ -257,7 +269,7 @@ func (a *album) Play(cmd, start string, tracks bool) error {
 }
 
 func (a *album) List(start string) error {
-	songs, err := contents(a.Path())
+	songs, err := subFiles(a.Path())
 	if err != nil {
 		return err
 	}
