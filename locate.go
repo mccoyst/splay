@@ -31,16 +31,25 @@ func LocateArtist(pattern string) (Music, error) {
 		return nil, err
 	}
 
+	best := 9999
+	loc := ""
 	for i := range artists {
 		if !artists[i].IsDir() {
 			continue
 		}
-		if match(pattern, artists[i].Name()) {
-			loc := filepath.Join(mloc, artists[i].Name())
-			return newArtist(loc), nil
+		m := match(pattern, artists[i].Name())
+		if m < 0 {
+			continue
+		}
+		if m < best {
+			best = m
+			loc = filepath.Join(mloc, artists[i].Name())
 		}
 	}
 
+	if loc != "" {
+		return newArtist(loc), nil
+	}
 	return nil, nil
 }
 
@@ -60,6 +69,8 @@ func LocateAlbum(pattern string) (Music, error) {
 		return nil, err
 	}
 
+	best := 9999
+	loc := ""
 	for i := range artists {
 		if !artists[i].IsDir() {
 			continue
@@ -72,14 +83,23 @@ func LocateAlbum(pattern string) (Music, error) {
 		}
 
 		for i := range albums {
-			if !albums[i].IsDir() || !match(pattern, albums[i].Name()) {
+			if !albums[i].IsDir() {
 				continue
 			}
-			loc := filepath.Join(aloc, albums[i].Name())
-			return newAlbum(loc, false), nil
+			m := match(pattern, albums[i].Name())
+			if m < 0 {
+				continue
+			}
+			if m < best {
+				best = m
+				loc = filepath.Join(aloc, albums[i].Name())
+			}
 		}
 	}
 
+	if loc != "" {
+		return newAlbum(loc, false), nil
+	}
 	return nil, nil
 }
 
@@ -109,11 +129,19 @@ func contents(path string) ([]os.FileInfo, error) {
 	return subs, nil
 }
 
-// match returns true iff s fits the pattern.
-func match(pattern, s string) bool {
+// match returns a non-negative score iff s fits the pattern, a negative value
+// otherwise. One score is better than another if it has a lower value.
+func match(pattern, s string) int {
 	s = clean(strings.ToLower(s))
 	pattern = clean(strings.ToLower(pattern))
-	return strings.Contains(s, pattern)
+	if !strings.Contains(s, pattern) {
+		return -1
+	}
+	d := len(s) - len(pattern)
+	if d < 0 {
+		return -d
+	}
+	return d
 }
 
 // clean returns s without any non-alphanumeric runes.
@@ -162,7 +190,10 @@ func (a *artist) Play(cmd, start string, tracks bool) error {
 		albums[n] = a
 	}
 
-	s := find(albums, start)
+	s := 0
+	if start != "" {
+		s = find(albums, start)
+	}
 
 	all := make([]os.FileInfo, 0, len(albums))
 	all = append(all, albums[s:len(albums)]...)
@@ -191,7 +222,10 @@ func (a *artist) List(start string) error {
 		return err
 	}
 
-	s := find(albums, start)
+	s := 0
+	if start != "" {
+		s = find(albums, start)
+	}
 
 	all := make([]os.FileInfo, 0, len(albums))
 	all = append(all, albums[s:len(albums)]...)
@@ -224,7 +258,10 @@ func (a *album) Play(cmd, start string, tracks bool) error {
 		return err
 	}
 
-	s := find(songs, start)
+	s := 0
+	if start != "" {
+		s = find(songs, start)
+	}
 
 	for i := s; i < len(songs); i++ {
 		if tracks {
@@ -251,7 +288,10 @@ func (a *album) List(start string) error {
 		return err
 	}
 
-	s := find(songs, start)
+	s := 0
+	if start != "" {
+		s = find(songs, start)
+	}
 
 	for i := s; i < len(songs); i++ {
 		fmt.Println(songs[i].Name())
@@ -261,12 +301,19 @@ func (a *album) List(start string) error {
 
 // find returns the index into fi of the given pattern, or 0 if not found.
 func find(fi []os.FileInfo, pattern string) int {
+	best := 9999
+	loc := 0
 	for i := range fi {
-		if match(pattern, fi[i].Name()) {
-			return i
+		m := match(pattern, fi[i].Name())
+		if m < 0 {
+			continue
+		}
+		if m < best {
+			best = m
+			loc = i
 		}
 	}
-	return 0
+	return loc
 }
 
 type Error struct {
