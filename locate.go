@@ -113,7 +113,6 @@ func contents(path string) ([]os.FileInfo, error) {
 func match(pattern, s string) bool {
 	s = clean(strings.ToLower(s))
 	pattern = clean(strings.ToLower(pattern))
-	fmt.Fprintf(os.Stderr, "s = %q, pattern = %q\n", s, pattern)
 	return strings.Contains(s, pattern)
 }
 
