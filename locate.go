@@ -219,8 +219,7 @@ func (a *artist) doPerAlbum(start string, f func(os.FileInfo) error) error {
 	albums = append(all, albums[0:s]...)
 
 	for _, album := range albums {
-		err := f(album)
-		if err != nil {
+		if err := f(album); err != nil {
 			return err
 		}
 	}
@@ -281,8 +280,7 @@ func (a *album) doPerSong(start string, f func(os.FileInfo) error) error {
 	}
 
 	for _, song := range songs[s:] {
-		err := f(song)
-		if err != nil {
+		if err := f(song); err != nil {
 			return err
 		}
 	}
