@@ -95,21 +95,21 @@ func musicloc() (string, error) {
 
 // subFiles returns a list of FileInfos for all files under path.
 func subFiles(path string) ([]os.FileInfo, error) {
-	return contents(path, func(f os.FileInfo)bool{
+	return contents(path, func(f os.FileInfo) bool {
 		return !f.IsDir() && f.Name() != ".DS_Store"
 	})
 }
 
 // subDirs returns a list of FileInfos for all directories under path.
 func subDirs(path string) ([]os.FileInfo, error) {
-	return contents(path, func(f os.FileInfo)bool{
+	return contents(path, func(f os.FileInfo) bool {
 		return f.IsDir()
 	})
 }
 
 // contents returns a list of FileInfos for all acceptable
 // entries under the given path.
-func contents(path string, accept func(os.FileInfo)bool) ([]os.FileInfo, error) {
+func contents(path string, accept func(os.FileInfo) bool) ([]os.FileInfo, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
