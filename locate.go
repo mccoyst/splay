@@ -252,36 +252,29 @@ func (a *album) Path() string {
 }
 
 func (a *album) Play(cmd, start string, tracks bool) error {
-	songs, err := subFiles(a.Path())
-	if err != nil {
-		return err
-	}
-
-	s := find(songs, start)
-	if s < 0 {
-		return newError("I failed to find a song matching this pattern: %q", start)
-	}
-
-	for i := s; i < len(songs); i++ {
+	return a.doPerSong(start, func(song os.FileInfo) error {
 		if tracks {
-			n := trimExt(songs[i].Name())
+			n := trimExt(song.Name())
 			if a.showName {
 				_, p := filepath.Split(a.Path())
 				n = p + "/" + n
 			}
 			fmt.Println(n)
 		}
-		f := filepath.Join(a.Path(), songs[i].Name())
+		f := filepath.Join(a.Path(), song.Name())
 		c := exec.Command(cmd, f)
-		err = c.Run()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+		return c.Run()
+	})
 }
 
 func (a *album) List(start string) error {
+	return a.doPerSong(start, func(song os.FileInfo) error {
+		fmt.Println(song.Name())
+		return nil
+	})
+}
+
+func (a *album) doPerSong(start string, f func(os.FileInfo) error) error {
 	songs, err := subFiles(a.Path())
 	if err != nil {
 		return err
@@ -292,9 +285,13 @@ func (a *album) List(start string) error {
 		return newError("I failed to find a song matching this pattern: %q", start)
 	}
 
-	for i := s; i < len(songs); i++ {
-		fmt.Println(songs[i].Name())
+	for _, song := range songs {
+		err := f(song)
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
