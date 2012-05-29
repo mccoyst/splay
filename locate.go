@@ -212,9 +212,7 @@ func (a *artist) doPerAlbum(start string, f func(os.FileInfo) error) error {
 		return newError("I failed to find an album matching this pattern: %q", start)
 	}
 
-	all := make([]os.FileInfo, 0, len(albums))
-	all = append(all, albums[s:len(albums)]...)
-	albums = append(all, albums[0:s]...)
+	albums = append(albums[s:len(albums)], albums[0:s]...)
 
 	for _, album := range albums {
 		if err := f(album); err != nil {
