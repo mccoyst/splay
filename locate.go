@@ -204,9 +204,7 @@ func (a *artist) doPerAlbum(start string, f func(os.FileInfo) error) error {
 	r := rand.New(rand.NewSource(int64(time.Now().Second())))
 	for i := range albums {
 		n := intnRange(r, i, len(albums))
-		a := albums[i]
-		albums[i] = albums[n]
-		albums[n] = a
+		albums[i], albums[n] = albums[n], albums[i]
 	}
 
 	s := find(albums, start)
