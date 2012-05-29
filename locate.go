@@ -56,31 +56,28 @@ func LocateAlbum(pattern string) (Music, error) {
 		return nil, err
 	}
 
-	best := 9999
-	loc := ""
-	for i := range artists {
-		aloc := filepath.Join(mloc, artists[i].Name())
+	allalbums := []os.FileInfo{}
+	allnames := []string{}
+	for _, artist := range artists {
+		aloc := filepath.Join(mloc, artist.Name())
 		albums, err := subDirs(aloc)
 		if err != nil {
 			return nil, err
 		}
 
-		for i := range albums {
-			m := match(pattern, albums[i].Name())
-			if m < 0 {
-				continue
-			}
-			if m < best {
-				best = m
-				loc = filepath.Join(aloc, albums[i].Name())
-			}
+		allalbums = append(allalbums, albums...)
+
+		for _, album := range albums {
+			allnames = append(allnames, filepath.Join(aloc, album.Name()))
 		}
 	}
 
-	if loc != "" {
-		return newAlbum(loc, false), nil
+	i := find(allalbums, pattern)
+	if i < 0 {
+		return nil, nil
 	}
-	return nil, nil
+
+	return newAlbum(allnames[i], false), nil
 }
 
 // musicloc returns the path to the current user's Music folder,
