@@ -11,7 +11,7 @@ import (
 
 var byartist = flag.Bool("artist", true, "Prefer artist name matches")
 var byalbum = flag.Bool("album", false, "Prefer album name matches")
-var tool = flag.String("tool", "afplay", "The program for playing music files")
+var tool = flag.String("tool", DefaultPlayer, "The program for playing music files")
 var start = flag.String("from", "", "The album or track to start playing from")
 var list = flag.Bool("list", false, "Print the playlist instead of playing it")
 var tracks = flag.Bool("tracks", false, "Print the name of each track before it is played")
