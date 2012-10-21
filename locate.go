@@ -5,6 +5,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -107,13 +108,7 @@ func subDirs(path string) ([]os.FileInfo, error) {
 // contents returns a list of FileInfos for all acceptable
 // entries under the given path.
 func contents(path string, accept func(os.FileInfo) bool) ([]os.FileInfo, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	allsubs, err := f.Readdir(0)
+	allsubs, err := ioutil.ReadDir(path)
 	if err != nil {
 		return nil, err
 	}
