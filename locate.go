@@ -1,4 +1,5 @@
-// © 2012 Steve McCoy. Licensed under the MIT License.
+// © 2012 Steve McCoy. Available under the MIT License.
+
 package main
 
 import (
