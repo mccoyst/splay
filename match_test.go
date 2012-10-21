@@ -7,12 +7,12 @@ import (
 )
 
 func TestClean(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		s, c string
 	}{
-		{ "Bob Dylan", "Bob Dylan" },
-		{ "Bob Dylan & The Band", "Bob Dylan  The Band" },
-		{ "AC/DC", "ACDC" },
+		{"Bob Dylan", "Bob Dylan"},
+		{"Bob Dylan & The Band", "Bob Dylan  The Band"},
+		{"AC/DC", "ACDC"},
 	}
 
 	for _, test := range tests {
@@ -24,15 +24,15 @@ func TestClean(t *testing.T) {
 }
 
 func TestMatch(t *testing.T) {
-	tests := []struct{
+	tests := []struct {
 		pattern, s string
-		score int
+		score      int
 	}{
-		{ "The Who", "The Who", 0 },
-		{ "acdc", "AC/DC", 0 },
-		{ "bob dylan", "Bob Dylan", 0 },
-		{ "bob dylan", "Bob Dylan & The Band", 10 },
-		{ "the band", "Bob Dylan & The Band", 11 },
+		{"The Who", "The Who", 0},
+		{"acdc", "AC/DC", 0},
+		{"bob dylan", "Bob Dylan", 0},
+		{"bob dylan", "Bob Dylan & The Band", 10},
+		{"the band", "Bob Dylan & The Band", 11},
 	}
 
 	for _, test := range tests {
