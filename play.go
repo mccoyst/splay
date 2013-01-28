@@ -19,6 +19,11 @@ var tracks = flag.Bool("tracks", false, "Print the name of each track before it 
 func main() {
 	flag.Parse()
 
+	if flag.NArg() == 0 {
+		fmt.Fprintln(os.Stderr, "Please provide the name of the thing to play.")
+		os.Exit(1)
+	}
+
 	pattern := strings.Join(flag.Args(), " ")
 	m, err := locate(pattern)
 	if err != nil {
