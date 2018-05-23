@@ -11,7 +11,6 @@ import (
 
 var byartist = flag.Bool("artist", true, "Prefer artist name matches")
 var byalbum = flag.Bool("album", false, "Prefer album name matches")
-var tool = flag.String("tool", DefaultPlayer, "The program for playing music files")
 var start = flag.String("from", "", "The album or track to start playing from")
 var list = flag.Bool("list", false, "Print the playlist instead of playing it")
 var tracks = flag.Bool("tracks", false, "Print the name of each track before it is played")
@@ -44,7 +43,7 @@ func main() {
 		return
 	}
 
-	err = m.Play(*tool, *start, *tracks)
+	err = m.Play(*start, *tracks)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)

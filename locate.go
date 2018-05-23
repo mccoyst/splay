@@ -4,16 +4,19 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
 	"unicode"
+
+	"github.com/mccoyst/vorbis"
+	"github.com/hajimehoshi/oto"
 )
 
 // LocateArtist returns a Music object, or an error if none
@@ -153,7 +156,7 @@ func clean(s string) string {
 // the different groupings of music (Artist, Album, Track)
 type Music interface {
 	Path() string
-	Play(string, string, bool) error
+	Play(string, bool) error
 	List(string) error
 }
 
@@ -170,10 +173,10 @@ func (a *artist) Path() string {
 	return a.path
 }
 
-func (a *artist) Play(cmd, start string, tracks bool) error {
+func (a *artist) Play(start string, tracks bool) error {
 	return a.doPerAlbum(start, func(album os.FileInfo) error {
 		p := filepath.Join(a.Path(), album.Name())
-		if err := newAlbum(p, true).Play(cmd, "", tracks); err != nil {
+		if err := newAlbum(p, true).Play("", tracks); err != nil {
 			return err
 		}
 		return nil
@@ -233,7 +236,7 @@ func (a *album) Path() string {
 	return a.path
 }
 
-func (a *album) Play(cmd, start string, tracks bool) error {
+func (a *album) Play(start string, tracks bool) error {
 	return a.doPerSong(start, func(song os.FileInfo) error {
 		if tracks {
 			n := trimExt(song.Name())
@@ -244,8 +247,26 @@ func (a *album) Play(cmd, start string, tracks bool) error {
 			fmt.Println(n)
 		}
 		f := filepath.Join(a.Path(), song.Name())
-		c := exec.Command(cmd, f)
-		return c.Run()
+		data, err := ioutil.ReadFile(f)
+		if err != nil {
+			return err
+		}
+		pcm, channels, sampleRate, err := vorbis.Decode(data)
+		if err != nil {
+			return err
+		}
+		var buf bytes.Buffer
+		err = binary.Write(&buf, binary.LittleEndian, pcm)
+		if err != nil {
+			return err
+		}
+		player, err := oto.NewPlayer(sampleRate, channels, 2, len(pcm)*2)
+		if err != nil {
+			return err
+		}
+		defer player.Close()
+		_, err = player.Write(buf.Bytes())
+		return err
 	})
 }
 
